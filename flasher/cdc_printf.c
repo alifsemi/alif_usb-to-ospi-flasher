@@ -28,6 +28,7 @@ int vcdc_printf(UX_SLAVE_CLASS_CDC_ACM *cdc, const char *fmt, va_list va) {
 int cdc_printf(UX_SLAVE_CLASS_CDC_ACM *cdc, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    return vcdc_printf(cdc, fmt, args);
+    int ret = vcdc_printf(cdc, fmt, args);
     va_end(args);
+    return ret;
 }
