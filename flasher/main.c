@@ -33,7 +33,7 @@
 /* Define constants.  */
 #define ONE_KB 1024
 #define UX_DEMO_NS_SIZE (32 * ONE_KB)
-#define BYTE_POOL_SIZE (64 * ONE_KB)
+#define BYTE_POOL_SIZE (116 * ONE_KB)
 #define XMODEM_THREAD_STACK_SIZE (32 * ONE_KB)
 #define PRG_THREAD_STACK_SIZE (4 * ONE_KB)
 
@@ -54,7 +54,7 @@ void clock_init(bool enable);
 
 // xmodem thread
 TX_THREAD xmodem_thread;
-static uint8_t xmodem_buffer[8 * ONE_KB];
+static uint8_t xmodem_buffer[32 * ONE_KB];
 
 // flash programming thread
 TX_THREAD program_thread;
@@ -145,6 +145,7 @@ void tx_application_define(void *first_unused_memory) {
     // Init queues for inter-thread communication
     status = prg_queue_init(&byte_pool);
     if (status != UX_SUCCESS) {
+        printf("ERR: prg_queue_init failed\r\n");
         error_handler();
     }
 
@@ -162,6 +163,7 @@ void tx_application_define(void *first_unused_memory) {
     // thread for programming flash
     status = program_thread_init(&byte_pool);
     if (status != TX_SUCCESS) {
+        printf("ERR: program_thread_init failed\r\n");
         error_handler();
     }
 
@@ -177,17 +179,25 @@ void tx_application_define(void *first_unused_memory) {
 
 VOID xmodem_thread_entry(ULONG arg) {
     printf("Communication thread started\n");
+
+    if (sizeof(xmodem_buffer) < get_program_thread_sector_size()) {
+        printf("ERR: Too small xmodem buffer\r\n");
+        while(1) { tx_thread_sleep(10); }
+    }
+
     while (1) {
         if (g_cdc != UX_NULL) {
-            printf("\nStarting xmodemReceive...\n");
-            cdc_printf(g_cdc, "\nStarting xmodemReceive... (flash sector_size=%u)\n", get_program_thread_sector_size());
+            printf("\r\nStarting xmodemReceive...\r\n");
+            cdc_printf(g_cdc, "\r\nStarting xmodemReceive... (flash sector_size=%u)\r\n", get_program_thread_sector_size());
             int ret = xmodemReceive(xmodem_buffer, sizeof(xmodem_buffer), get_program_thread_sector_size());
             if (ret < 0) {
-                printf("\nFailed, ret = %d\n", ret);
-                cdc_printf(g_cdc, "\nFailed = %d\n", ret);
+                printf("\r\nFailed, ret = %d\r\n", ret);
+                cdc_printf(g_cdc, "\r\nFailed = %d\r\n", ret);
             } else {
-                printf("\nSuccess, ret = %d\n", ret);
-                cdc_printf(g_cdc, "\nSuccess, ret = %d\n", ret);
+                printf("\r\nSuccess, %d bytes received.\r\n", ret);
+                printf("You may power down the board if you are done with programming.\r\n");
+                cdc_printf(g_cdc, "\r\nSuccess, %d bytes received.\r\n", ret);
+                cdc_printf(g_cdc, "You may power down the board if you are done with programming.\r\n");
             }
         } else {
             tx_thread_sleep(10);
