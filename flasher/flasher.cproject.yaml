@@ -14,6 +14,9 @@ project:
       files:
         - file: ../libs/board/devkit_gen2/board_init.c
         - file: ../libs/board/appkit_gen2/board_init.c
+    - group: Flash Device
+      files:
+        - file: ../issi_drv/IS25WX256_mod.c
 
   misc:
     - ASM:
@@ -29,6 +32,8 @@ project:
     - .
     - ../board/
     - ../libs/board/
+    - ../issi_drv/
+
   components:
     # needed for Alif Ensemble support
     - component: AlifSemiconductor::Device:Startup&C Startup
@@ -79,7 +84,11 @@ project:
     # - component: AlifSemiconductor::BSP:External peripherals:Ethernet PHY
     # - component: AlifSemiconductor::BSP:External peripherals:GT911 Touch Controller
     # - component: AlifSemiconductor::BSP:External peripherals:ILI9806E LCD panel
-    - component: AlifSemiconductor::BSP:External peripherals:OSPI Flash ISSI
+
+    # NOTE: this project uses a modified driver in order to use bigger sector size for speed up
+    # default 4KiB sector size gives ~60KiB/s programming speed while 32KiB sectors
+    # produce ~200KiB/s
+    # - component: AlifSemiconductor::BSP:External peripherals:OSPI Flash ISSI
     # - component: AlifSemiconductor::Device:Conductor Tool support
     # - component: AlifSemiconductor::Device:Power Management
     # - component: AlifSemiconductor::Device:Retarget IO:STDERR
