@@ -14,7 +14,7 @@ The application initializes USBX and opens CDC ACM serial connection.
 - When one full sector of data (4KiB) is received the flash sector is erased and pages are programmed
 - Last sector is detected from the end of transmission
 - Programming target address starts from the beginning of the OSPI flash address space
-- printf is retargeted to UART4
+- printf is retargeted to UART4 (NOTE: XMODEM communication via SoC USB)
 - Note/TODO: existing data in the end of last written sector is not preserved.
 - XMODEM-1K is not yet supported, but it is the flash device limiting the speed anyway
 
@@ -24,6 +24,7 @@ The application initializes USBX and opens CDC ACM serial connection.
   - Click the hammer icon in the csolution extension
   - (Press F1, type "Run", click "Tasks: Run Task") Program with Security Toolkit
 
+- Connect DevKit SoC USB to host PC
 - Program the OSPI flash using your favorite terminal emulator
   - Starting the transfer with Tera Term
     ![Start transfer](doc/teraterm_transfer.png)
