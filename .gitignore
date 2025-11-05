@@ -1,6 +1,7 @@
 out/
 tmp/
-*.yml
-!alif.cbuild-pack.yml
-*.cprj
+*.cbuild-idx.yml
+*.cbuild-set.yml
+*.cbuild-run.yml
+*.cbuild.yml
 *.clangd

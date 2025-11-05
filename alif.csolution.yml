@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/tools/projmgr/2.6.0/tools/projmgr/schemas/csolution.schema.json
+solution:
+  created-for: cmsis-toolbox@2.6.0
+  cdefault:
+
+  # List of tested compilers that can be selected
+  select-compiler:
+    - compiler: GCC
+
+  # Select used compiler
+  compiler: GCC
+
+  packs:
+    - pack: AlifSemiconductor::Ensemble@2.0.4
+    - pack: AlifSemiconductor::ThreadX@2.0.0
+    - pack: ARM::CMSIS@6.0.0
+    - pack: ARM::CMSIS-Compiler@2.1.0
+
+  target-types:
+    - type: E7-HE
+      device: Alif Semiconductor::AE722F80F55D5LS:M55_HE
+      board: Alif Semiconductor::DevKit-E7
+
+    - type: E7-HP
+      device: Alif Semiconductor::AE722F80F55D5LS:M55_HP
+      board: Alif Semiconductor::DevKit-E7
+
+    - type: E1C-HE
+      device: Alif Semiconductor::AE1C1F4051920PH:M55_HE
+      board: Alif Semiconductor::DevKit-E1C
+      define:
+        - ENSEMBLE_SOC_E1C
+
+    - type: E8-HE
+      device: Alif Semiconductor::AE822FA0E5597LS0:M55_HE
+      board: Alif Semiconductor::DevKit-E8
+
+    - type: E8-HP
+      device: Alif Semiconductor::AE822FA0E5597LS0:M55_HP
+      board: Alif Semiconductor::DevKit-E8
+
+  build-types:
+    - type: debug
+      optimize: none
+      debug: on
+      define:
+        - _DEBUG
+    - type: release
+      optimize: speed
+      debug: on
+
+  define:
+    - UNICODE
+    - _UNICODE
+
+  projects:
+    - project: flasher/flasher.cproject.yml

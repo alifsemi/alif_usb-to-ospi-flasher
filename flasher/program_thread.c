@@ -14,18 +14,19 @@
 #include <stdio.h>
 
 #include "Driver_Flash.h"
-#include "Driver_GPIO.h"
-#include "board.h"
+#include "Driver_IO.h"
+#include "board_defs.h"
 #include "prg_desc.h"
 #include "prg_queue.h"
+#include "leds.h"
 #include "tx_api.h"
 
 // External OSPI flash
 bool init_ext_flash(void);
-#define OSPI_RESET_PORT LP
-#define OSPI_RESET_PIN 7
-extern ARM_DRIVER_GPIO ARM_Driver_GPIO_(OSPI_RESET_PORT);
-static ARM_DRIVER_GPIO *OSPI_GPIODrv = &ARM_Driver_GPIO_(OSPI_RESET_PORT);
+
+extern ARM_DRIVER_GPIO ARM_Driver_GPIO_(BOARD_ISSI_FLASH_RESET_GPIO_PORT);
+static ARM_DRIVER_GPIO *OSPI_GPIODrv = &ARM_Driver_GPIO_(BOARD_ISSI_FLASH_RESET_GPIO_PORT);
+
 extern ARM_DRIVER_FLASH ARM_Driver_Flash_(1);
 static ARM_DRIVER_FLASH *ptrDrvFlash = &ARM_Driver_Flash_(1);
 
@@ -56,7 +57,7 @@ UINT program_thread_init(TX_BYTE_POOL *pool) {
 VOID program_thread_entry(ULONG arg) {
     printf("Programming thread started\n");
 
-    printf("Init flash device\n");
+    printf("Init flash device.\n");
     bool flash_status = init_ext_flash();
     if (!flash_status) {
         printf("ERR: flash init failed\n");
@@ -82,7 +83,7 @@ VOID program_thread_entry(ULONG arg) {
             }
         }
 
-        BOARD_LED2_Control(BOARD_LED_STATE_HIGH);
+        leds_set_green(true);
         const uint32_t sector_addr = pd.block_idx * ptrDrvFlash->GetInfo()->sector_size;
         int32_t ret = ptrDrvFlash->EraseSector(sector_addr);
         if (ret != ARM_DRIVER_OK) {
@@ -102,14 +103,14 @@ VOID program_thread_entry(ULONG arg) {
             }
         }
 
-        BOARD_LED2_Control(BOARD_LED_STATE_LOW);
+        leds_set_green(false);
         tx_queue_send(get_prg_queue_free(), &pd, TX_WAIT_FOREVER);
     }
 }
 
 static void toggle_ospi_flash_reset(void) {
-    OSPI_GPIODrv->SetValue(OSPI_RESET_PIN, GPIO_PIN_OUTPUT_STATE_LOW);
-    OSPI_GPIODrv->SetValue(OSPI_RESET_PIN, GPIO_PIN_OUTPUT_STATE_HIGH);
+    OSPI_GPIODrv->SetValue(BOARD_ISSI_FLASH_RESET_GPIO_PIN, GPIO_PIN_OUTPUT_STATE_LOW);
+    OSPI_GPIODrv->SetValue(BOARD_ISSI_FLASH_RESET_GPIO_PIN, GPIO_PIN_OUTPUT_STATE_HIGH);
 }
 
 bool init_ext_flash(void) {

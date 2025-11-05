@@ -10,25 +10,33 @@
 
 #include "RTE_Components.h"
 #include "se_services_port.h"
-#include "system_utils.h"
+#include "sys_utils.h"
 #include "ux_api.h"
-#include "ux_dcd_dwc3.h"
+#include "ux_dcd.h"
 #include "ux_device_class_cdc_acm.h"
 #include "ux_device_stack.h"
 #include "ux_system.h"
 #include "ux_utility.h"
-#if defined(RTE_Compiler_IO_STDOUT)
-#include "Driver_Common.h"
-#include "retarget_stdout.h"
-#endif /* RTE_Compiler_IO_STDOUT */
 
-#include "board.h"
+#if defined(RTE_CMSIS_Compiler_STDOUT)
+#include "retarget_init.h"
+#include "Driver_Common.h"
+#endif
+
 #include "cdc_printf.h"
 #include "prg_desc.h"
 #include "prg_queue.h"
 #include "program_thread.h"
 #include "usb_framework_def.h"
 #include "xmodem.h"
+#include "leds.h"
+
+#include "board_defs.h"
+#include "board_config.h"
+
+#ifdef ENSEMBLE_SOC_E1C
+#include "sys_ctrl_sd.h"
+#endif
 
 /* Define constants.  */
 #define ONE_KB 1024
@@ -63,41 +71,51 @@ uint8_t dma_buf[UX_DEMO_NS_SIZE] __attribute__((section("usb_dma_buf")));
 UX_SLAVE_CLASS_CDC_ACM_PARAMETER cdc_acm0_parameter;
 
 int main(void) {
-    uint32_t error_code = 0;
-    uint32_t service_error_code = 0;
-    run_profile_t runp = {0};
     /* Initialize the SE services */
     se_services_port_init();
     clock_init(true);
-    BOARD_Pinmux_Init();
+
+    int32_t ret = board_pins_config();
+    if (ret != 0) {
+        printf("Error in pin-mux configuration: %d\n", ret);
+        return 0;
+    }
+
+    ret = board_gpios_config();
+    if (ret != 0) {
+        printf("Error in gpio configuration: %d\n", ret);
+        return 0;
+    }
+
+    leds_init();
 
     /* Get the current run configuration from SE */
-    error_code = SERVICES_get_run_cfg(se_services_s_handle, &runp, &service_error_code);
-    if (error_code) {
-        printf("SE: get_run_cfg error = %d\n", error_code);
+    run_profile_t runp = {0};
+    uint32_t service_error_code = 0;
+    uint32_t ret_se = SERVICES_get_run_cfg(se_services_s_handle, &runp, &service_error_code);
+    if (ret_se || service_error_code) {
+        printf("SE: get_run_cfg error: ret=%u err_code=%u\n", ret_se, service_error_code);
         return 0;
     }
 
     runp.phy_pwr_gating |= USB_PHY_MASK;
 
     /* Set the current run configuration to SE */
-    error_code = SERVICES_set_run_cfg(se_services_s_handle, &runp, &service_error_code);
-    if (error_code) {
-        printf("SE: set_run_cfg error = %d\n", error_code);
+    ret_se = SERVICES_set_run_cfg(se_services_s_handle, &runp, &service_error_code);
+    if (ret_se || service_error_code) {
+        printf("SE: set_run_cfg error: ret=%u err_code=%u\n", ret_se, service_error_code);
         return 0;
     }
 
-#if defined(RTE_Compiler_IO_STDOUT_User)
-    int32_t ret;
-    ret = stdout_init();
-    if (ret != ARM_DRIVER_OK) {
-        while (1) {
-        }
+#if defined(RTE_CMSIS_Compiler_STDOUT)
+    if(stdout_init() != ARM_DRIVER_OK)
+    {
+        return 0;
     }
 #endif
 
     tx_kernel_enter();
-    return (0);
+    return 0;
 }
 
 void tx_application_define(void *first_unused_memory) {
@@ -132,7 +150,11 @@ void tx_application_define(void *first_unused_memory) {
         error_handler();
     }
 
-    status = _ux_dcd_dwc3_initialize();
+#ifdef ENSEMBLE_SOC_E1C
+    enable_sd_periph_clk();
+#endif
+
+    status = ux_dcd_initialize();
     if (status != UX_SUCCESS) {
         error_handler();
     }
@@ -187,6 +209,7 @@ VOID xmodem_thread_entry(ULONG arg) {
 
     while (1) {
         if (g_cdc != UX_NULL) {
+            leds_set_red(false);
             printf("\r\nStarting xmodemReceive...\r\n");
             cdc_printf(g_cdc, "\r\nStarting xmodemReceive... (flash sector_size=%u)\r\n", get_program_thread_sector_size());
             int ret = xmodemReceive(xmodem_buffer, sizeof(xmodem_buffer), get_program_thread_sector_size());
@@ -200,6 +223,7 @@ VOID xmodem_thread_entry(ULONG arg) {
                 cdc_printf(g_cdc, "You may power down the board if you are done with programming.\r\n");
             }
         } else {
+            leds_set_red(true);
             tx_thread_sleep(10);
         }
     }
@@ -227,7 +251,7 @@ VOID error_handler(void) {
 
 void clock_init(bool enable) {
     uint32_t service_error_code = 0;
-    uint32_t error_code = SERVICES_clocks_enable_clock(se_services_s_handle, CLKEN_USB, enable, &service_error_code);
+    uint32_t error_code = SERVICES_clocks_enable_clock(se_services_s_handle, CLKEN_CLK_20M, enable, &service_error_code);
     if (error_code || service_error_code) {
         printf("SE: SDMMC 20MHz clock enable error_code=%u se_error_code=%u\n", error_code);
         return;
