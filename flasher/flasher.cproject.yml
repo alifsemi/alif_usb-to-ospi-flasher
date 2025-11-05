@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/tools/projmgr/2.6.0/tools/projmgr/schemas/cproject.schema.json
+project:
+  groups:
+    - group: App
+      files:
+        - file: main.c
+        - file: cdc_printf.c
+        - file: program_thread.c
+        - file: prg_queue.c
+        - file: xmodem_callbacks.c
+        - file: xmodem.c
+        - file: crc16.c
+        - file: leds.c
+    # Modified ISSI flash driver (large sector erase)
+    - group: Flash Device
+      files:
+        - file: ../issi_drv/IS25WX256_mod.c
+
+  misc:
+    - ASM:
+      - -include "Pre_Include_Global.h"
+
+  output:
+    base-name: $Project$
+    type:
+      - elf
+      - bin
+
+  add-path:
+    - .
+    - ../issi_drv/
+
+  layers:
+    - layer: ../device/ensemble/alif-ensemble.clayer.yml
+
+  components:
+    - component: AlifSemiconductor::Device:SOC Peripherals:GPIO
+    - component: AlifSemiconductor::Device:SOC Peripherals:OSPI
+    - component: AlifSemiconductor::Device:SOC Peripherals:PINCONF
+    - component: AlifSemiconductor::CMSIS Driver:USART
+    # NOTE: this project uses a modified driver in order to use bigger sector size for speed up
+    # default 4KiB sector size gives ~60KiB/s programming speed while 32KiB sectors
+    # produce ~200KiB/s
+    #- component: AlifSemiconductor::BSP:External peripherals:OSPI Flash ISSI
+    - component: ARM::CMSIS-Compiler:CORE
+    - component: ARM::CMSIS-Compiler:STDOUT:Custom
+    - component: AlifSemiconductor::Services:Retarget IO:STDOUT
+
+    - component: AlifSemiconductor::RTOS&ThreadX:Kernel:Core
+    - component: AlifSemiconductor::RTOS&ThreadX:Kernel:GCC_Port
+    - component: AlifSemiconductor::RTOS&ThreadX:USBX:Core
+    - component: AlifSemiconductor::RTOS&ThreadX:USBX:CDC ACM Device Class
+    - component: AlifSemiconductor::RTOS&ThreadX:USBX:USBX Device Controller

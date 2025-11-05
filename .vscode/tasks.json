@@ -15,18 +15,14 @@
         {
             "label": "Clean all (including YML build files)",
             "type": "shell",
+            "command": [
+                "cbuild ${command:cmsis-csolution.getSolutionPath} --clean;",
+                "rm -f ./flasher/*.cbuild.yml;"
+            ],
             "windows": {
                 "command": [
                     "cbuild ${command:cmsis-csolution.getSolutionPath} --clean;",
-                    "rm -Force ./flasher/*.cbuild.yml;",
-                    "rm -Force ./flasher/*.cprj;",
-                ]
-            },
-            "linux": {
-                "command": [
-                    "cbuild ${command:cmsis-csolution.getSolutionPath} --clean;",
-                    "rm -f ./flasher/*.cbuild.yml;",
-                    "rm -f ./flasher/*.cprj;",
+                    "rm -Force ./flasher/*.cbuild.yml;"
                 ]
             },
             "problemMatcher": []
@@ -37,8 +33,8 @@
             "command": [
                 "cpackget init https://www.keil.com/pack/index.pidx;",
                 "cpackget add https://github.com/ARM-software/CMSIS_6/releases/download/v6.0.0/ARM.CMSIS.6.0.0.pack;",
-                "cpackget add https://github.com/alifsemi/alif_ensemble-cmsis-dfp/releases/download/v1.3.0/AlifSemiconductor.Ensemble.1.3.0.pack;",
-                "cpackget add https://github.com/alifsemi/alif_ensemble-Azure-RTOS/releases/download/v1.3.0/AlifSemiconductor.AzureRTOS.1.3.0.pack;",
+                "cpackget add https://github.com/alifsemi/alif_ensemble-cmsis-dfp/releases/download/v2.0.4/AlifSemiconductor.Ensemble.2.0.4.pack;",
+                "cpackget add https://github.com/alifsemi/alif_ensemble-Azure-RTOS/releases/download/v2.0.0/AlifSemiconductor.ThreadX.2.0.0.pack",
                 "cpackget list;",
                 "echo 'Pack installation has been completed'"
             ],
@@ -47,6 +43,11 @@
         {
             "label": "Prepare program with Security Toolkit",
             "type": "shell",
+            "command": [
+                "outputElfFilename='${command:cmsis-csolution.getBinaryFile}';",
+                "cp \"${outputElfFilename/%???/bin}\" '${config:alif.setools.root}/build/images/alif-img.bin';",
+                "cp './.alif/${command:cmsis-csolution.getProcessorName}_cfg.json' '${config:alif.setools.root}/alif-img.json';"
+            ],
             "windows": {
                 "command": [
                     "$outputElfFilename='${command:cmsis-csolution.getBinaryFile}';",
@@ -55,19 +56,14 @@
                     "cp './.alif/${command:cmsis-csolution.getProcessorName}_cfg.json' '${config:alif.setools.root}/alif-img.json';"
                 ]
             },
-            "linux": {
-                "command": [
-                    "outputElfFilename='${command:cmsis-csolution.getBinaryFile}';",
-                    "cp \"${outputElfFilename/%???/bin}\" '${config:alif.setools.root}/build/images/alif-img.bin';",
-                    "cp './.alif/${command:cmsis-csolution.getProcessorName}_cfg.json' '${config:alif.setools.root}/alif-img.json';"
-                ]
-            },
             "problemMatcher": []
         },
         {
             "label": "Program with Security Toolkit",
             "type": "shell",
-            "options": {"cwd": "${config:alif.setools.root}"},
+            "options": {
+                "cwd": "${config:alif.setools.root}"
+            },
             "command": [
                 "./app-gen-toc -f alif-img.json;",
                 "./app-write-mram -p;",
@@ -80,7 +76,9 @@
         {
             "label": "Program with Security Toolkit (select COM port)",
             "type": "shell",
-            "options": {"cwd": "${config:alif.setools.root}"},
+            "options": {
+                "cwd": "${config:alif.setools.root}"
+            },
             "command": [
                 "./app-gen-toc -f alif-img.json;",
                 "./app-write-mram -p -d;",
@@ -93,7 +91,9 @@
         {
             "label": "Update TOC with Security Toolkit",
             "type": "shell",
-            "options": {"cwd": "${config:alif.setools.root}"},
+            "options": {
+                "cwd": "${config:alif.setools.root}"
+            },
             "command": [
                 "./app-gen-toc -f alif-img.json;",
                 "./app-write-mram -S;",
@@ -106,20 +106,227 @@
         {
             "label": "Install debug stubs with Security Toolkit",
             "type": "shell",
-            "options": {"cwd": "${config:alif.setools.root}"},
+            "options": {
+                "cwd": "${config:alif.setools.root}"
+            },
             "command": [
                 "./app-gen-toc -f ./build/config/app-cpu-stubs.json;",
-                "./app-write-mram;",
+                "./app-write-mram;"
             ],
             "problemMatcher": []
         },
         {
             "label": "Install debug stubs with Security Toolkit (select COM port)",
             "type": "shell",
-            "options": {"cwd": "${config:alif.setools.root}"},
+            "options": {
+                "cwd": "${config:alif.setools.root}"
+            },
             "command": [
                 "./app-gen-toc -f ./build/config/app-cpu-stubs.json;",
-                "./app-write-mram -d;",
+                "./app-write-mram -d;"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CMSIS Erase",
+            "type": "shell",
+            "command": "pyocd",
+            "options": {
+                "cwd": "${workspaceFolder}/"
+            },
+            "windows": {
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": [
+                            "/d",
+                            "/c"
+                        ]
+                    }
+                }
+            },
+            "linux": {
+                "options": {
+                    "shell": {
+                        "executable": "/bin/bash",
+                        "args": [
+                            "-c"
+                        ]
+                    }
+                }
+            },
+            "osx": {
+                "options": {
+                    "shell": {
+                        "executable": "/bin/bash",
+                        "args": [
+                            "-c"
+                        ]
+                    }
+                }
+            },
+            "args": [
+                "erase",
+                "--probe",
+                "cmsisdap:",
+                "--chip",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CMSIS Load",
+            "type": "shell",
+            "command": "pyocd",
+            "options": {
+                "cwd": "${workspaceFolder}/"
+            },
+            "windows": {
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": [
+                            "/d",
+                            "/c"
+                        ]
+                    }
+                }
+            },
+            "linux": {
+                "options": {
+                    "shell": {
+                        "executable": "/bin/bash",
+                        "args": [
+                            "-c"
+                        ]
+                    }
+                }
+            },
+            "osx": {
+                "options": {
+                    "shell": {
+                        "executable": "/bin/bash",
+                        "args": [
+                            "-c"
+                        ]
+                    }
+                }
+            },
+            "args": [
+                "load",
+                "--probe",
+                "cmsisdap:",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CMSIS Run",
+            "type": "shell",
+            "command": "pyocd",
+            "options": {
+                "cwd": "${workspaceFolder}/"
+            },
+            "windows": {
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": [
+                            "/d",
+                            "/c"
+                        ]
+                    }
+                }
+            },
+            "linux": {
+                "options": {
+                    "shell": {
+                        "executable": "/bin/bash",
+                        "args": [
+                            "-c"
+                        ]
+                    }
+                }
+            },
+            "osx": {
+                "options": {
+                    "shell": {
+                        "executable": "/bin/bash",
+                        "args": [
+                            "-c"
+                        ]
+                    }
+                }
+            },
+            "args": [
+                "gdbserver",
+                "--probe",
+                "cmsisdap:",
+                "--connect",
+                "attach",
+                "--persist",
+                "--reset-run",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}",
+                "--quiet",
+                "--log",
+                "*.cbuild_run,*server=info"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CMSIS Load+Run",
+            "dependsOn": [
+                "CMSIS Load",
+                "CMSIS Run"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "CMSIS TargetInfo",
+            "type": "shell",
+            "command": "pyocd",
+            "options": {
+                "cwd": "${workspaceFolder}/"
+            },
+            "windows": {
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": [
+                            "/d",
+                            "/c"
+                        ]
+                    }
+                }
+            },
+            "linux": {
+                "options": {
+                    "shell": {
+                        "executable": "/bin/bash",
+                        "args": [
+                            "-c"
+                        ]
+                    }
+                }
+            },
+            "osx": {
+                "options": {
+                    "shell": {
+                        "executable": "/bin/bash",
+                        "args": [
+                            "-c"
+                        ]
+                    }
+                }
+            },
+            "args": [
+                "list",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}"
             ],
             "problemMatcher": []
         }
