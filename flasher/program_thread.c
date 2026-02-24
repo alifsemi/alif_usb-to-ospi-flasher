@@ -24,11 +24,11 @@
 // External OSPI flash
 bool init_ext_flash(void);
 
-extern ARM_DRIVER_GPIO ARM_Driver_GPIO_(BOARD_ISSI_FLASH_RESET_GPIO_PORT);
-static ARM_DRIVER_GPIO *OSPI_GPIODrv = &ARM_Driver_GPIO_(BOARD_ISSI_FLASH_RESET_GPIO_PORT);
+extern ARM_DRIVER_GPIO ARM_Driver_GPIO_(BOARD_OSPI_FLASH_RESET_GPIO_PORT);
+static ARM_DRIVER_GPIO *OSPI_GPIODrv = &ARM_Driver_GPIO_(BOARD_OSPI_FLASH_RESET_GPIO_PORT);
 
-extern ARM_DRIVER_FLASH ARM_Driver_Flash_(1);
-static ARM_DRIVER_FLASH *ptrDrvFlash = &ARM_Driver_Flash_(1);
+extern ARM_DRIVER_FLASH ARM_Driver_Flash_(BOARD_OSPI_FLASH_INSTANCE);
+static ARM_DRIVER_FLASH *ptrDrvFlash = &ARM_Driver_Flash_(BOARD_OSPI_FLASH_INSTANCE);
 
 #define NUM_OF_PD (2)
 static prg_desc pds[NUM_OF_PD];
@@ -109,8 +109,8 @@ VOID program_thread_entry(ULONG arg) {
 }
 
 static void toggle_ospi_flash_reset(void) {
-    OSPI_GPIODrv->SetValue(BOARD_ISSI_FLASH_RESET_GPIO_PIN, GPIO_PIN_OUTPUT_STATE_LOW);
-    OSPI_GPIODrv->SetValue(BOARD_ISSI_FLASH_RESET_GPIO_PIN, GPIO_PIN_OUTPUT_STATE_HIGH);
+    OSPI_GPIODrv->SetValue(BOARD_OSPI_FLASH_RESET_GPIO_PIN, GPIO_PIN_OUTPUT_STATE_LOW);
+    OSPI_GPIODrv->SetValue(BOARD_OSPI_FLASH_RESET_GPIO_PIN, GPIO_PIN_OUTPUT_STATE_HIGH);
 }
 
 bool init_ext_flash(void) {

@@ -1,6 +1,6 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/tools/projmgr/2.6.0/tools/projmgr/schemas/csolution.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/tools/projmgr/2.12.0/tools/projmgr/schemas/csolution.schema.json
 solution:
-  created-for: cmsis-toolbox@2.6.0
+  created-for: CMSIS-Toolbox@2.12.0
   cdefault:
 
   # List of tested compilers that can be selected
@@ -11,33 +11,81 @@ solution:
   compiler: GCC
 
   packs:
-    - pack: AlifSemiconductor::Ensemble@2.0.4
+    - pack: AlifSemiconductor::Ensemble@2.1.0
     - pack: AlifSemiconductor::ThreadX@2.0.0
-    - pack: ARM::CMSIS@6.0.0
+    - pack: ARM::CMSIS@6.1.0
     - pack: ARM::CMSIS-Compiler@2.1.0
 
   target-types:
-    - type: E7-HE
+    - type: DevKit-E7-HE
       device: Alif Semiconductor::AE722F80F55D5LS:M55_HE
       board: Alif Semiconductor::DevKit-E7
+      variables:
+        - BoardLayer: $SolutionDir()$/board/devkit-e7/board.clayer.yml
+      target-set:
+        - set:
+          images:
+            - project-context: flasher.release
 
-    - type: E7-HP
+    - type: DevKit-E7-HP
       device: Alif Semiconductor::AE722F80F55D5LS:M55_HP
       board: Alif Semiconductor::DevKit-E7
+      variables:
+        - BoardLayer: $SolutionDir()$/board/devkit-e7/board.clayer.yml
+      target-set:
+        - set:
+          images:
+            - project-context: flasher.release
 
-    - type: E1C-HE
-      device: Alif Semiconductor::AE1C1F4051920PH:M55_HE
+    - type: DevKit-E1C-HE
+      device: Alif Semiconductor::AE1C1F4051920PH0:M55_HE
       board: Alif Semiconductor::DevKit-E1C
-      define:
-        - ENSEMBLE_SOC_E1C
+      variables:
+        - BoardLayer: $SolutionDir()$/board/devkit-e1c/board.clayer.yml
+      target-set:
+        - set:
+          images:
+            - project-context: flasher.release
 
-    - type: E8-HE
+    - type: DevKit-E8-HE
       device: Alif Semiconductor::AE822FA0E5597LS0:M55_HE
       board: Alif Semiconductor::DevKit-E8
+      variables:
+        - BoardLayer: $SolutionDir()$/board/devkit-e8/board.clayer.yml
+      target-set:
+        - set:
+          images:
+            - project-context: flasher.release
 
-    - type: E8-HP
+    - type: DevKit-E8-HP
       device: Alif Semiconductor::AE822FA0E5597LS0:M55_HP
       board: Alif Semiconductor::DevKit-E8
+      variables:
+        - BoardLayer: $SolutionDir()$/board/devkit-e8/board.clayer.yml
+      target-set:
+        - set:
+          images:
+            - project-context: flasher.release
+
+    - type: AppKit-E8-HE
+      device: Alif Semiconductor::AE822FA0E5597BS0:M55_HE
+      board: Alif Semiconductor::AppKit-E8-AIML
+      variables:
+        - BoardLayer: $SolutionDir()$/board/appkit-e8/board.clayer.yml
+      target-set:
+        - set:
+          images:
+            - project-context: flasher.debug
+
+    - type: AppKit-E8-HP
+      device: Alif Semiconductor::AE822FA0E5597BS0:M55_HP
+      board: Alif Semiconductor::AppKit-E8-AIML
+      variables:
+        - BoardLayer: $SolutionDir()$/board/appkit-e8/board.clayer.yml
+      target-set:
+        - set:
+          images:
+            - project-context: flasher.release
 
   build-types:
     - type: debug
