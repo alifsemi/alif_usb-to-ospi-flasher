@@ -10,7 +10,8 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "jobs": 8
         },
         {
             "label": "Clean all (including YML build files)",
@@ -33,7 +34,7 @@
             "command": [
                 "cpackget init https://www.keil.com/pack/index.pidx;",
                 "cpackget add https://github.com/ARM-software/CMSIS_6/releases/download/v6.1.0/ARM.CMSIS.6.1.0.pack;",
-                "cpackget add https://github.com/alifsemi/alif_ensemble-cmsis-dfp/releases/download/v2.1.0/AlifSemiconductor.Ensemble.2.1.0.pack;",
+                "cpackget add https://github.com/alifsemi/alif_ensemble-cmsis-dfp/releases/download/v2.2.1/AlifSemiconductor.Ensemble.2.2.1.pack;",
                 "cpackget add https://github.com/alifsemi/alif_ensemble-Azure-RTOS/releases/download/v2.0.0/AlifSemiconductor.ThreadX.2.0.0.pack",
                 "cpackget list;",
                 "echo 'Pack installation has been completed'"
@@ -134,7 +135,7 @@
                 "echo Connect > .cmd.jlink &&",
                 "echo Erase >> .cmd.jlink &&",
                 "echo Exit >> .cmd.jlink &&",
-                "JLink.exe -device AE822FA0E5597LS0_M55_HE -if swd -speed 4000 -commandfile .cmd.jlink"
+                "JLink.exe -device AE822FA0E5597LS0_M55_HP -if swd -speed 4000 -commandfile .cmd.jlink"
             ],
             "options": {
                 "cwd": "${workspaceFolder}/",
@@ -153,9 +154,9 @@
             "type": "shell",
             "command": [
                 "echo Connect > .cmd.jlink &&",
-                "echo LoadFile \"out/flasher/DevKit-E8-HE/release/flasher.elf\" >> .cmd.jlink &&",
+                "echo LoadFile \"out/flasher/DevKit-E8-HP/release/flasher.elf\" >> .cmd.jlink &&",
                 "echo Exit >> .cmd.jlink &&",
-                "JLink.exe -device AE822FA0E5597LS0_M55_HE -if swd -speed 4000 -commandfile .cmd.jlink"
+                "JLink.exe -device AE822FA0E5597LS0_M55_HP -if swd -speed 4000 -commandfile .cmd.jlink"
             ],
             "options": {
                 "cwd": "${workspaceFolder}/",
@@ -185,11 +186,12 @@
             },
             "args": [
                 "-device",
-                "AE822FA0E5597LS0_M55_HE",
+                "AE822FA0E5597LS0_M55_HP",
                 "-endian",
                 "little",
                 "-if",
-                "swd-speed",
+                "swd",
+                "-speed",
                 "4000",
                 "-nohalt",
                 "-noir",
