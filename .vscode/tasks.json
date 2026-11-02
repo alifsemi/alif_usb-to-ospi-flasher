@@ -10,7 +10,8 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "jobs": 8
         },
         {
             "label": "Clean all (including YML build files)",
@@ -33,7 +34,7 @@
             "command": [
                 "cpackget init https://www.keil.com/pack/index.pidx;",
                 "cpackget add https://github.com/ARM-software/CMSIS_6/releases/download/v6.1.0/ARM.CMSIS.6.1.0.pack;",
-                "cpackget add https://github.com/alifsemi/alif_ensemble-cmsis-dfp/releases/download/v2.1.0/AlifSemiconductor.Ensemble.2.1.0.pack;",
+                "cpackget add https://github.com/alifsemi/alif_ensemble-cmsis-dfp/releases/download/v2.2.1/AlifSemiconductor.Ensemble.2.2.1.pack;",
                 "cpackget add https://github.com/alifsemi/alif_ensemble-Azure-RTOS/releases/download/v2.0.0/AlifSemiconductor.ThreadX.2.0.0.pack",
                 "cpackget list;",
                 "echo 'Pack installation has been completed'"
@@ -130,12 +131,7 @@
         {
             "label": "CMSIS Erase",
             "type": "shell",
-            "command": [
-                "echo Connect > .cmd.jlink &&",
-                "echo Erase >> .cmd.jlink &&",
-                "echo Exit >> .cmd.jlink &&",
-                "JLink.exe -device AE822FA0E5597LS0_M55_HE -if swd -speed 4000 -commandfile .cmd.jlink"
-            ],
+            "command": "pyocd",
             "options": {
                 "cwd": "${workspaceFolder}/",
                 "shell": {
@@ -146,17 +142,20 @@
                     ]
                 }
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "args": [
+                "erase",
+                "--probe",
+                "cmsisdap:",
+                "--chip",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}"
+            ]
         },
         {
             "label": "CMSIS Load",
             "type": "shell",
-            "command": [
-                "echo Connect > .cmd.jlink &&",
-                "echo LoadFile \"out/flasher/DevKit-E8-HE/release/flasher.elf\" >> .cmd.jlink &&",
-                "echo Exit >> .cmd.jlink &&",
-                "JLink.exe -device AE822FA0E5597LS0_M55_HE -if swd -speed 4000 -commandfile .cmd.jlink"
-            ],
+            "command": "pyocd",
             "options": {
                 "cwd": "${workspaceFolder}/",
                 "shell": {
@@ -167,12 +166,19 @@
                     ]
                 }
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "args": [
+                "load",
+                "--probe",
+                "cmsisdap:",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}"
+            ]
         },
         {
             "label": "CMSIS Run",
             "type": "shell",
-            "command": "JLinkGDBServerCL.exe",
+            "command": "pyocd",
             "options": {
                 "cwd": "${workspaceFolder}/",
                 "shell": {
@@ -184,22 +190,16 @@
                 }
             },
             "args": [
-                "-device",
-                "AE822FA0E5597LS0_M55_HE",
-                "-endian",
-                "little",
-                "-if",
-                "swd-speed",
-                "4000",
-                "-nohalt",
-                "-noir",
-                "-nogui",
-                "-localhostonly",
-                "-silent",
-                "-port",
-                "3333",
-                "-TelnetPort",
-                "4444"
+                "gdbserver",
+                "--probe",
+                "cmsisdap:",
+                "--persist",
+                "--reset-run",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}",
+                "--quiet",
+                "--log",
+                "*.cbuild_run,*server=info"
             ],
             "problemMatcher": []
         },
@@ -297,6 +297,27 @@
                     }
                 }
             },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMSIS TargetInfo",
+            "type": "shell",
+            "command": "pyocd",
+            "options": {
+                "cwd": "${workspaceFolder}/",
+                "shell": {
+                    "executable": "cmd.exe",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            },
+            "args": [
+                "list",
+                "--cbuild-run",
+                "${command:cmsis-csolution.getCbuildRunFile}"
+            ],
             "problemMatcher": []
         }
     ]
